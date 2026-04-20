@@ -19,9 +19,27 @@ namespace SchoolManagementAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult GetAll(
+            int page = 1,
+            int pageSize = 5,
+            string search = "",
+            string sortBy = "id",
+            string order = "asc",
+            string className = "", 
+            string section = "" 
+        )
         {
-            return Ok(_service.GetAll());
+            var result = _service.GetPaged(
+                page,
+                pageSize,
+                search,
+                sortBy,
+                order,
+                className,
+                section
+            );
+
+            return Ok(result);
         }
 
         [HttpGet("{id}")]

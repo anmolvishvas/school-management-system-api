@@ -89,5 +89,61 @@ namespace SchoolManagementAPI.Services
             _context.SaveChanges();
             return true;
         }
+
+        public object GetPaged(int page, int pageSize, string search, string sortBy, string order, string className, string section)
+        {
+            var query = _context.Students.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(s =>
+                    s.Name.Contains(search) ||
+                    s.Class.Contains(search) ||
+                    s.Section.Contains(search)
+                );
+            }
+
+            if (!string.IsNullOrEmpty(className))
+            {
+                query = query.Where(s =>
+                    s.Class != null &&
+                    s.Class.ToLower().Trim() == className.ToLower().Trim()
+                );
+            }
+
+            if (!string.IsNullOrEmpty(section))
+            {
+                query = query.Where(s =>
+                    s.Section != null &&
+                    s.Section.ToLower().Trim() == section.ToLower().Trim()
+                );
+            }
+
+            bool isAsc = order?.ToLower() != "desc";
+
+            query = sortBy?.ToLower() switch
+            {
+                "name" => isAsc ? query.OrderBy(s => s.Name) : query.OrderByDescending(s => s.Name),
+                "class" => isAsc ? query.OrderBy(s => s.Class) : query.OrderByDescending(s => s.Class),
+                "section" => isAsc ? query.OrderBy(s => s.Section) : query.OrderByDescending(s => s.Section),
+                _ => query.OrderBy(s => s.Id)
+            };
+
+            var total = query.Count();
+
+            var data = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(s => new StudentDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Class = s.Class,
+                    Section = s.Section
+                })
+                .ToList();
+
+            return new { total, page, pageSize, data };
+        }
     }
 }
