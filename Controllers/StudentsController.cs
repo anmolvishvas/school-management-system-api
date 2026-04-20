@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SchoolManagementAPI.Models;
 using SchoolManagementAPI.Services;
 using SchoolManagementAPI.DTOs;
 
 namespace SchoolManagementAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class StudentsController : ControllerBase
