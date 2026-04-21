@@ -145,5 +145,27 @@ namespace SchoolManagementAPI.Services
 
             return new { total, page, pageSize, data };
         }
+
+        public object GetStats()
+        {
+            var totalStudents = _context.Students.Count();
+
+            var byClass = _context.Students
+                .GroupBy(s => s.Class)
+                .Select(g => new { label = g.Key, count = g.Count() })
+                .ToList();
+
+            var bySection = _context.Students
+                .GroupBy(s => s.Section)
+                .Select(g => new { label = g.Key, count = g.Count() })
+                .ToList();
+
+            return new
+            {
+                totalStudents,
+                byClass,
+                bySection
+            };
+        }
     }
 }

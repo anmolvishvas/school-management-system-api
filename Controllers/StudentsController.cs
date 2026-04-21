@@ -25,8 +25,8 @@ namespace SchoolManagementAPI.Controllers
             string search = "",
             string sortBy = "id",
             string order = "asc",
-            string className = "", 
-            string section = "" 
+            string className = "",
+            string section = ""
         )
         {
             var result = _service.GetPaged(
@@ -50,6 +50,7 @@ namespace SchoolManagementAPI.Controllers
             return Ok(student);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult Create(CreateStudentDto dto)
         {
@@ -61,6 +62,7 @@ namespace SchoolManagementAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public IActionResult Update(int id, UpdateStudentDto dto)
         {
@@ -73,12 +75,21 @@ namespace SchoolManagementAPI.Controllers
             return Ok(updated);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             var deleted = _service.Delete(id);
             if (!deleted) return NotFound();
             return Ok("Deleted successfully");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("stats")]
+        public IActionResult GetStats()
+        {
+            var result = _service.GetStats();
+            return Ok(result);
         }
     }
 }

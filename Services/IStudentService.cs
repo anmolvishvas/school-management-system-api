@@ -17,4 +17,6 @@ public interface IStudentService
     string className,
     string section
 );
+
+    object GetStats();
 }
