@@ -41,6 +41,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(x => x.AdmissionNumber).HasMaxLength(50);
             entity.Property(x => x.EmergencyContact).HasMaxLength(200);
             entity.Property(x => x.Notes).HasMaxLength(2000);
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
         });
     }
 }

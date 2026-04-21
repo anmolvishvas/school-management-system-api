@@ -18,7 +18,7 @@
 ## Setup
 
 1. Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) and (if needed) the EF CLI: `dotnet tool install --global dotnet-ef`
-2. Set `ConnectionStrings:DefaultConnection` in `src/SchoolManagement.Api/appsettings.Development.json`
+2. Set `ConnectionStrings:DefaultConnection` in `src/SchoolManagement.Api/appsettings.Development.json` (defaults to local **SchoolDB** with Windows auth; change `Server=` if you use a named instance, e.g. `Server=.\\SQLEXPRESS` or `Server=YOUR-MACHINE\\INSTANCE`).
 3. Choose database provider in `Database:Provider`: `SqlServer` (default) or `PostgreSQL` / `Npgsql`
 4. Apply migrations (from repo root):
 
@@ -33,6 +33,12 @@ dotnet run --project src/SchoolManagement.Api
 ```
 
 Open Swagger at `http://localhost:5070/swagger` (see `launchSettings.json` for ports).
+
+## Students list (`GET /api/Students`)
+
+- **No query filter**: returns every student (active and inactive).
+- **`activeOnly=true`**: returns only rows where `IsActive` is true. If the table is empty, you will see `total: 0` (this is expected).
+- In **Development**, if the `Students` table is empty after startup seeding, two demo students are inserted so local Swagger calls return data.
 
 ## Seed users (first run)
 
@@ -54,3 +60,7 @@ After migrations, the API seeds:
 - `GET /api/Dashboard/kpis` — total students; attendance/fee KPIs reserved for upcoming modules
 
 Replace the JWT signing key in production (`Jwt:Key` in configuration).
+
+## Legacy `SchoolDB` / existing tables
+
+Migrations are **idempotent**: if `Students` or `Users` already exist, the first migration skips `CREATE TABLE` and only **adds missing columns** (for example `IsActive`, profile fields). Then `dotnet run` can apply pending migrations without “object already exists” errors.
