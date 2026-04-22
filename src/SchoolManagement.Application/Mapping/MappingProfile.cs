@@ -1,4 +1,5 @@
 using AutoMapper;
+using SchoolManagement.Application.Attendance.Dtos;
 using SchoolManagement.Application.Students.Dtos;
 using SchoolManagement.Domain.Entities;
 
@@ -11,5 +12,8 @@ public class MappingProfile : Profile
         CreateMap<Student, StudentDto>();
         CreateMap<CreateStudentDto, Student>();
         CreateMap<UpdateStudentDto, Student>();
+
+        CreateMap<AttendanceRecord, AttendanceRecordDto>()
+            .ForMember(d => d.StudentName, o => o.MapFrom(s => s.Student != null ? s.Student.Name : string.Empty));
     }
 }

@@ -57,7 +57,19 @@ After migrations, the API seeds:
 - `POST /api/Auth/register` — create user (Admin only)
 - `GET/POST/PUT/DELETE /api/Students` — student CRUD & paged list (writes Admin-only; all roles authenticated for reads)
 - `GET /api/Students/stats` — counts by class/section (Admin)
-- `GET /api/Dashboard/kpis` — total students; attendance/fee KPIs reserved for upcoming modules
+- `GET /api/Dashboard/kpis` — total students; **attendance % (last 30 days)** when marks exist; fee KPI reserved
+
+## Attendance (`/api/Attendance`)
+
+- `GET /api/Attendance` — paged list (filters: `studentId`, `className`, `section`, `dateFrom`, `dateTo`, `sortBy`, `order`). Roles: **Admin, Teacher, Accountant**
+- `GET /api/Attendance/summary?from=&to=` — counts by status + **attendance rate %** (Present+Late = 1, HalfDay = 0.5, Absent = 0; **Excused** excluded from denominator). Optional `className`, `section`
+- `GET /api/Attendance/{id}` — single row
+- `POST /api/Attendance` — single mark (student must match `class`/`section`). **Admin, Teacher**
+- `POST /api/Attendance/bulk-day` — body: `{ "date", "class", "section", "lines": [{ "studentId", "status", "notes" }] }` upserts one row per student per day. **Admin, Teacher**
+- `PUT /api/Attendance/{id}` — update status/notes. **Admin, Teacher**
+- `DELETE /api/Attendance/{id}` — **Admin** only
+
+`AttendanceStatus` enum values: `Present` (1), `Absent` (2), `Late` (3), `Excused` (4), `HalfDay` (5).
 
 Replace the JWT signing key in production (`Jwt:Key` in configuration).
 

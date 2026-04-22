@@ -84,6 +84,17 @@ public class StudentRepository : IStudentRepository
         return _db.Students.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Student>> ListByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return Array.Empty<Student>();
+
+        return await _db.Students
+            .AsNoTracking()
+            .Where(s => ids.Contains(s.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Student student, CancellationToken cancellationToken = default)
     {
         await _db.Students.AddAsync(student, cancellationToken);

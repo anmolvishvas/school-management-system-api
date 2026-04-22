@@ -17,6 +17,8 @@ public interface IStudentRepository
         CancellationToken cancellationToken = default);
 
     Task<Student?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Student>> ListByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken = default);
     Task AddAsync(Student student, CancellationToken cancellationToken = default);
     Task UpdateAsync(Student student, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);

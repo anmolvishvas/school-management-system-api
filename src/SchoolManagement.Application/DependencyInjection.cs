@@ -1,6 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using SchoolManagement.Application.Attendance;
 using SchoolManagement.Application.Auth;
 using SchoolManagement.Application.Dashboard;
 using SchoolManagement.Application.Students;
@@ -15,6 +16,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         services.AddScoped<IStudentService, StudentService>();
+        services.AddScoped<IAttendanceService, AttendanceService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IDashboardService, DashboardService>();
 

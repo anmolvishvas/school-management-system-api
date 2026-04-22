@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Student> Students => Set<Student>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,6 +43,25 @@ public class ApplicationDbContext : DbContext
             entity.Property(x => x.EmergencyContact).HasMaxLength(200);
             entity.Property(x => x.Notes).HasMaxLength(2000);
             entity.Property(x => x.IsActive).HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<AttendanceRecord>(entity =>
+        {
+            entity.ToTable("AttendanceRecords");
+            entity.Property(x => x.Class).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.Section).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.Notes).HasMaxLength(500);
+            entity.HasIndex(x => new { x.StudentId, x.Date }).IsUnique();
+
+            entity.HasOne(x => x.Student)
+                .WithMany()
+                .HasForeignKey(x => x.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.MarkedBy)
+                .WithMany()
+                .HasForeignKey(x => x.MarkedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }
