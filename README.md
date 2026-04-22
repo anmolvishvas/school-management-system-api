@@ -71,6 +71,56 @@ After migrations, the API seeds:
 
 `AttendanceStatus` enum values: `Present` (1), `Absent` (2), `Late` (3), `Excused` (4), `HalfDay` (5).
 
+## Period/Hour attendance (`/api/PeriodAttendance`)
+
+This supports attendance per **day + hour + subject** and subject-teacher allocation.
+
+- A **teacher can handle many subjects**
+- A **subject has one assigned teacher**
+- Attendance is upserted per tuple: `StudentId + Date + HourNumber + SubjectId`
+
+Endpoints:
+- `GET /api/PeriodAttendance/subjects?activeOnly=true`
+- `POST /api/PeriodAttendance/subjects` (Admin)
+- `PUT /api/PeriodAttendance/subjects/{id}` (Admin)
+- `DELETE /api/PeriodAttendance/subjects/{id}` (Admin)
+- `GET /api/PeriodAttendance` (filter by `studentId`, `subjectId`, `className`, `section`, `dateFrom`, `dateTo`, `hourNumber`)
+- `POST /api/PeriodAttendance/bulk-mark` (Admin, Teacher)
+
+Example bulk mark:
+
+```json
+{
+  "date": "2026-04-22",
+  "hourNumber": 2,
+  "subjectId": 1,
+  "class": "MCA",
+  "section": "A",
+  "lines": [
+    { "studentId": 6, "status": "Present", "notes": "" },
+    { "studentId": 7, "status": "Late", "notes": "10 min late" }
+  ]
+}
+```
+
+## Teachers and allocations (`/api/Teachers`)
+
+- `GET /api/Teachers?activeOnly=true`
+- `POST /api/Teachers` (Admin)
+- `PUT /api/Teachers/{id}` (Admin)
+- `DELETE /api/Teachers/{id}` (Admin)
+- `GET /api/Teachers/allocations?page=1&pageSize=30&teacherId=&subjectId=&className=&section=&activeOnly=true`
+- `POST /api/Teachers/allocations` (Admin)
+- `PUT /api/Teachers/allocations/{id}` (Admin)
+- `DELETE /api/Teachers/allocations/{id}` (Admin)
+- `GET /api/Teachers/{id}/teaching-plan?fromDate=2026-01-01&toDate=2026-12-31&activeOnly=true`
+
+Teaching plan response is a tree:
+- Teacher profile
+- Class/section groups
+- Subject allocations per class/section
+- `weeklyPeriods` derived from observed period attendance in the selected date range
+
 Replace the JWT signing key in production (`Jwt:Key` in configuration).
 
 ## Legacy `SchoolDB` / existing tables

@@ -13,11 +13,13 @@ namespace SchoolManagement.Application.Auth;
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _users;
+    private readonly ITeacherRepository _teachers;
     private readonly IConfiguration _configuration;
 
-    public AuthService(IUserRepository users, IConfiguration configuration)
+    public AuthService(IUserRepository users, ITeacherRepository teachers, IConfiguration configuration)
     {
         _users = users;
+        _teachers = teachers;
         _configuration = configuration;
     }
 
@@ -40,6 +42,25 @@ public class AuthService : IAuthService
         };
 
         await _users.AddAsync(user, cancellationToken);
+
+        // Auto-provision Teacher profile so client doesn't need a second API call.
+        if (string.Equals(normalizedRole, ApplicationRoles.Teacher, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingTeacher = await _teachers.GetByUserIdAsync(user.Id, cancellationToken);
+            if (existingTeacher == null)
+            {
+                await _teachers.AddAsync(
+                    new Teacher
+                    {
+                        UserId = user.Id,
+                        FullName = user.Username,
+                        Email = user.Username.Contains('@') ? user.Username : null,
+                        IsActive = true
+                    },
+                    cancellationToken);
+            }
+        }
+
         return "User created";
     }
 
