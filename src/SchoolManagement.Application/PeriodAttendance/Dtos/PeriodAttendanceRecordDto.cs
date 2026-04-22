@@ -12,6 +12,8 @@ public class PeriodAttendanceRecordDto
     public int TeacherUserId { get; set; }
     public DateOnly Date { get; set; }
     public int HourNumber { get; set; }
+    public TimeOnly? StartTime { get; set; }
+    public TimeOnly? EndTime { get; set; }
     public AttendanceStatus Status { get; set; }
     public string Class { get; set; } = string.Empty;
     public string Section { get; set; } = string.Empty;

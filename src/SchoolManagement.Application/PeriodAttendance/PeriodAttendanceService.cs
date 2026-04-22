@@ -10,6 +10,7 @@ public class PeriodAttendanceService : IPeriodAttendanceService
 {
     private readonly ISubjectRepository _subjects;
     private readonly ITeacherAllocationRepository _allocations;
+    private readonly ITimetableRepository _timetable;
     private readonly IStudentRepository _students;
     private readonly IPeriodAttendanceRepository _periodAttendance;
     private readonly IMapper _mapper;
@@ -17,12 +18,14 @@ public class PeriodAttendanceService : IPeriodAttendanceService
     public PeriodAttendanceService(
         ISubjectRepository subjects,
         ITeacherAllocationRepository allocations,
+        ITimetableRepository timetable,
         IStudentRepository students,
         IPeriodAttendanceRepository periodAttendance,
         IMapper mapper)
     {
         _subjects = subjects;
         _allocations = allocations;
+        _timetable = timetable;
         _students = students;
         _periodAttendance = periodAttendance;
         _mapper = mapper;
@@ -95,12 +98,15 @@ public class PeriodAttendanceService : IPeriodAttendanceService
         CancellationToken cancellationToken = default)
     {
         var rows = await _periodAttendance.GetPagedAsync(page, pageSize, studentId, subjectId, className, section, dateFrom, dateTo, hourNumber, sortBy, order, cancellationToken);
+        var data = _mapper.Map<IReadOnlyList<PeriodAttendanceRecordDto>>(rows.Data).ToList();
+        await EnrichWithTimetableTimesAsync(data, cancellationToken);
+
         return new PagedResult<PeriodAttendanceRecordDto>
         {
             Total = rows.Total,
             Page = rows.Page,
             PageSize = rows.PageSize,
-            Data = _mapper.Map<IReadOnlyList<PeriodAttendanceRecordDto>>(rows.Data)
+            Data = data
         };
     }
 
@@ -144,5 +150,111 @@ public class PeriodAttendanceService : IPeriodAttendanceService
             cancellationToken);
 
         return dto.Lines.Count;
+    }
+
+    public async Task<int> BulkMarkPeriodFromTimetableAsync(BulkMarkPeriodFromTimetableDto dto, int? markedByUserId, CancellationToken cancellationToken = default)
+    {
+        if (dto.Lines.Count == 0)
+            return 0;
+
+        var slot = await _timetable.GetByIdAsync(dto.TimetableEntryId, cancellationToken)
+            ?? throw new InvalidOperationException("Timetable entry not found.");
+        if (!slot.IsActive)
+            throw new InvalidOperationException("Timetable entry is inactive.");
+        if (dto.Date.DayOfWeek != slot.DayOfWeek)
+            throw new InvalidOperationException($"Date {dto.Date} is {dto.Date.DayOfWeek}, but timetable slot is {slot.DayOfWeek}.");
+        if (slot.Teacher == null)
+            throw new InvalidOperationException("Timetable entry teacher not found.");
+
+        var hourNumber = await ResolveHourNumberFromTimetableAsync(slot, cancellationToken);
+        var normalizedClass = slot.Class.Trim();
+        var normalizedSection = slot.Section.Trim();
+
+        var ids = dto.Lines.Select(l => l.StudentId).Distinct().ToList();
+        var students = await _students.ListByIdsAsync(ids, cancellationToken);
+        var byId = students.ToDictionary(s => s.Id);
+
+        foreach (var line in dto.Lines)
+        {
+            if (!byId.TryGetValue(line.StudentId, out var student))
+                throw new InvalidOperationException($"Student {line.StudentId} was not found.");
+
+            if (!string.Equals(student.Class.Trim(), normalizedClass, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(student.Section.Trim(), normalizedSection, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Student {student.Id} is in {student.Class}/{student.Section}, not {normalizedClass}/{normalizedSection}.");
+            }
+        }
+
+        await _periodAttendance.UpsertPeriodEntriesAsync(
+            dto.Date,
+            hourNumber,
+            slot.SubjectId,
+            slot.Teacher.UserId,
+            normalizedClass,
+            normalizedSection,
+            dto.Lines.Select(l => (l.StudentId, l.Status, l.Notes)).ToList(),
+            markedByUserId,
+            cancellationToken);
+
+        return dto.Lines.Count;
+    }
+
+    private async Task<int> ResolveHourNumberFromTimetableAsync(TimetableEntry slot, CancellationToken cancellationToken)
+    {
+        var daySlots = await _timetable.GetByClassSectionAsync(slot.Class, slot.Section, true, cancellationToken);
+        var orderedDaySlots = daySlots
+            .Where(x => x.DayOfWeek == slot.DayOfWeek)
+            .OrderBy(x => x.StartTime)
+            .ThenBy(x => x.EndTime)
+            .ToList();
+
+        var index = orderedDaySlots.FindIndex(x => x.Id == slot.Id);
+        if (index < 0)
+            throw new InvalidOperationException("Timetable slot is not available for period mapping.");
+
+        var hourNumber = index + 1;
+        if (hourNumber > 12)
+            throw new InvalidOperationException("Mapped period number exceeds 12. Reduce periods in this day or extend period attendance model.");
+        return hourNumber;
+    }
+
+    private async Task EnrichWithTimetableTimesAsync(List<PeriodAttendanceRecordDto> data, CancellationToken cancellationToken)
+    {
+        if (data.Count == 0)
+            return;
+
+        var classSectionDayKeys = data
+            .Select(x => (Class: x.Class.Trim(), Section: x.Section.Trim(), Day: x.Date.DayOfWeek))
+            .Distinct()
+            .ToList();
+
+        var slotLookup = new Dictionary<(string Class, string Section, DayOfWeek Day, int HourNumber), (TimeOnly Start, TimeOnly End)>();
+
+        foreach (var key in classSectionDayKeys)
+        {
+            var slots = await _timetable.GetByClassSectionAsync(key.Class, key.Section, true, cancellationToken);
+            var daySlots = slots
+                .Where(x => x.DayOfWeek == key.Day)
+                .OrderBy(x => x.StartTime)
+                .ThenBy(x => x.EndTime)
+                .ToList();
+
+            for (var i = 0; i < daySlots.Count; i++)
+            {
+                var hourNumber = i + 1;
+                slotLookup[(key.Class, key.Section, key.Day, hourNumber)] = (daySlots[i].StartTime, daySlots[i].EndTime);
+            }
+        }
+
+        foreach (var row in data)
+        {
+            var key = (row.Class.Trim(), row.Section.Trim(), row.Date.DayOfWeek, row.HourNumber);
+            if (slotLookup.TryGetValue(key, out var slot))
+            {
+                row.StartTime = slot.Start;
+                row.EndTime = slot.End;
+            }
+        }
     }
 }

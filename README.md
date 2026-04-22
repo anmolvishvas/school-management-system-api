@@ -84,8 +84,9 @@ Endpoints:
 - `POST /api/Subjects` (Admin)
 - `PUT /api/Subjects/{id}` (Admin)
 - `DELETE /api/Subjects/{id}` (Admin)
-- `GET /api/PeriodAttendance` (filter by `studentId`, `subjectId`, `className`, `section`, `dateFrom`, `dateTo`, `hourNumber`)
+- `GET /api/PeriodAttendance` (filter by `studentId`, `subjectId`, `className`, `section`, `dateFrom`, `dateTo`, `hourNumber`) — response also includes timetable `startTime`/`endTime` when mapped
 - `POST /api/PeriodAttendance/bulk-mark` (Admin, Teacher)
+- `POST /api/PeriodAttendance/bulk-mark-timetable` (Admin, Teacher) — uses timetable slot to auto-resolve class/section/subject/teacher and map period number from that day schedule
 
 Example bulk mark:
 
@@ -96,6 +97,19 @@ Example bulk mark:
   "subjectId": 1,
   "class": "MCA",
   "section": "A",
+  "lines": [
+    { "studentId": 6, "status": "Present", "notes": "" },
+    { "studentId": 7, "status": "Late", "notes": "10 min late" }
+  ]
+}
+```
+
+Example timetable-linked bulk mark:
+
+```json
+{
+  "date": "2026-04-22",
+  "timetableEntryId": 5,
   "lines": [
     { "studentId": 6, "status": "Present", "notes": "" },
     { "studentId": 7, "status": "Late", "notes": "10 min late" }

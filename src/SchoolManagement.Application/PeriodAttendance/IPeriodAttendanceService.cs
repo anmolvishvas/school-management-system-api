@@ -26,4 +26,5 @@ public interface IPeriodAttendanceService
         CancellationToken cancellationToken = default);
 
     Task<int> BulkMarkPeriodAsync(BulkMarkPeriodAttendanceDto dto, int? markedByUserId, CancellationToken cancellationToken = default);
+    Task<int> BulkMarkPeriodFromTimetableAsync(BulkMarkPeriodFromTimetableDto dto, int? markedByUserId, CancellationToken cancellationToken = default);
 }

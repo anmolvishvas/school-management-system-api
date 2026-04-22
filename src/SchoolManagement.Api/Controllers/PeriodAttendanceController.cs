@@ -42,6 +42,21 @@ public class PeriodAttendanceController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin,Teacher")]
+    [HttpPost("bulk-mark-timetable")]
+    public async Task<IActionResult> BulkMarkFromTimetable([FromBody] BulkMarkPeriodFromTimetableDto dto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var count = await _service.BulkMarkPeriodFromTimetableAsync(dto, TryGetUserId(), cancellationToken);
+            return Ok(new { marked = count });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     private int? TryGetUserId()
     {
         var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
