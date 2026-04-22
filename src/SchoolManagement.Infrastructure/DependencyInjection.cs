@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<IPeriodAttendanceRepository, PeriodAttendanceRepository>();
         services.AddScoped<ITeacherRepository, TeacherRepository>();
         services.AddScoped<ITeacherAllocationRepository, TeacherAllocationRepository>();
+        services.AddScoped<ITimetableRepository, TimetableRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
 
         return services;

@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<CourseSection> CourseSections => Set<CourseSection>();
     public DbSet<CourseSubject> CourseSubjects => Set<CourseSubject>();
+    public DbSet<TimetableEntry> TimetableEntries => Set<TimetableEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -142,6 +143,21 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(x => new { x.CourseId, x.SubjectId }).IsUnique();
             entity.HasOne(x => x.Course).WithMany().HasForeignKey(x => x.CourseId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(x => x.Subject).WithMany().HasForeignKey(x => x.SubjectId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TimetableEntry>(entity =>
+        {
+            entity.ToTable("TimetableEntries");
+            entity.Property(x => x.Class).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.Section).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.StartTime).HasColumnType("time").IsRequired();
+            entity.Property(x => x.EndTime).HasColumnType("time").IsRequired();
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+            entity.HasIndex(x => new { x.Class, x.Section, x.DayOfWeek, x.StartTime, x.EndTime }).IsUnique();
+            entity.HasIndex(x => new { x.TeacherId, x.DayOfWeek, x.StartTime, x.EndTime }).IsUnique();
+
+            entity.HasOne(x => x.Subject).WithMany().HasForeignKey(x => x.SubjectId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.Teacher).WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

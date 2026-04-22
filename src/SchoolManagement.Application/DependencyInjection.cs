@@ -8,6 +8,7 @@ using SchoolManagement.Application.Dashboard;
 using SchoolManagement.Application.PeriodAttendance;
 using SchoolManagement.Application.Students;
 using SchoolManagement.Application.Teachers;
+using SchoolManagement.Application.Timetables;
 
 namespace SchoolManagement.Application;
 
@@ -23,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IAttendanceService, AttendanceService>();
         services.AddScoped<IPeriodAttendanceService, PeriodAttendanceService>();
         services.AddScoped<ITeacherService, TeacherService>();
+        services.AddScoped<ITimetableService, TimetableService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IDashboardService, DashboardService>();
 

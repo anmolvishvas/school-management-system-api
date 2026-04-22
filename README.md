@@ -73,17 +73,17 @@ After migrations, the API seeds:
 
 ## Period/Hour attendance (`/api/PeriodAttendance`)
 
-This supports attendance per **day + hour + subject** and subject-teacher allocation.
+This supports attendance per **day + hour + subject** and teacher allocation.
 
 - A **teacher can handle many subjects**
-- A **subject has one assigned teacher**
+- A subject does **not** store teacher directly; assignment comes from class/section allocation
 - Attendance is upserted per tuple: `StudentId + Date + HourNumber + SubjectId`
 
 Endpoints:
-- `GET /api/PeriodAttendance/subjects?activeOnly=true`
-- `POST /api/PeriodAttendance/subjects` (Admin)
-- `PUT /api/PeriodAttendance/subjects/{id}` (Admin)
-- `DELETE /api/PeriodAttendance/subjects/{id}` (Admin)
+- `GET /api/Subjects?activeOnly=true`
+- `POST /api/Subjects` (Admin)
+- `PUT /api/Subjects/{id}` (Admin)
+- `DELETE /api/Subjects/{id}` (Admin)
 - `GET /api/PeriodAttendance` (filter by `studentId`, `subjectId`, `className`, `section`, `dateFrom`, `dateTo`, `hourNumber`)
 - `POST /api/PeriodAttendance/bulk-mark` (Admin, Teacher)
 
@@ -114,6 +114,40 @@ Example bulk mark:
 - `PUT /api/Teachers/allocations/{id}` (Admin)
 - `DELETE /api/Teachers/allocations/{id}` (Admin)
 - `GET /api/Teachers/{id}/teaching-plan?fromDate=2026-01-01&toDate=2026-12-31&activeOnly=true`
+
+## Timetable (`/api/Timetable`)
+
+- `GET /api/Timetable?page=1&pageSize=50&className=&section=&dayOfWeek=&teacherId=&activeOnly=`
+- `GET /api/Timetable/{id}`
+- `GET /api/Timetable/class-section?className=MCA&section=A&activeOnly=true`
+- `POST /api/Timetable` (Admin)
+- `POST /api/Timetable/bulk-weekly` (Admin)
+- `PUT /api/Timetable/{id}` (Admin)
+- `DELETE /api/Timetable/{id}` (Admin)
+
+Rules enforced:
+- One class/section can have only one subject in an overlapping day+time range
+- One teacher can take only one class in an overlapping day+time range
+- Teacher and subject must exist; teacher must be active
+
+Bulk weekly upsert example:
+
+```json
+{
+  "class": "MCA",
+  "section": "A",
+  "lines": [
+    { "dayOfWeek": "Monday", "startTime": "07:30:00", "endTime": "09:30:00", "subjectId": 2, "teacherId": 1, "isActive": true },
+    { "dayOfWeek": "Monday", "startTime": "09:30:00", "endTime": "10:30:00", "subjectId": 3, "teacherId": 2, "isActive": true },
+    { "dayOfWeek": "Tuesday", "startTime": "07:30:00", "endTime": "08:30:00", "subjectId": 4, "teacherId": 1, "isActive": true }
+  ]
+}
+```
+
+Behavior:
+- Upserts by slot key: `class + section + dayOfWeek + startTime + endTime`
+- Existing slot in same class-section is updated, missing slot is inserted
+- Validates duplicate slots within payload before writing
 
 Teaching plan response is a tree:
 - Teacher profile

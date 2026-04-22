@@ -4,6 +4,7 @@ using SchoolManagement.Application.Courses.Dtos;
 using SchoolManagement.Application.PeriodAttendance.Dtos;
 using SchoolManagement.Application.Students.Dtos;
 using SchoolManagement.Application.Teachers.Dtos;
+using SchoolManagement.Application.Timetables.Dtos;
 using SchoolManagement.Domain.Entities;
 
 namespace SchoolManagement.Application.Mapping;
@@ -34,5 +35,9 @@ public class MappingProfile : Profile
         CreateMap<CourseSection, CourseSectionDto>();
         CreateMap<CourseSubject, CourseSubjectDto>()
             .ForMember(d => d.SubjectName, o => o.MapFrom(s => s.Subject != null ? s.Subject.Name : string.Empty));
+
+        CreateMap<TimetableEntry, TimetableEntryDto>()
+            .ForMember(d => d.SubjectName, o => o.MapFrom(s => s.Subject != null ? s.Subject.Name : string.Empty))
+            .ForMember(d => d.TeacherName, o => o.MapFrom(s => s.Teacher != null ? s.Teacher.FullName : string.Empty));
     }
 }

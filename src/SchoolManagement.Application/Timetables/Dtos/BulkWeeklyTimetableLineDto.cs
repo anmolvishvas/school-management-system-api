@@ -1,0 +1,11 @@
+namespace SchoolManagement.Application.Timetables.Dtos;
+
+public class BulkWeeklyTimetableLineDto
+{
+    public DayOfWeek DayOfWeek { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
+    public int SubjectId { get; set; }
+    public int TeacherId { get; set; }
+    public bool IsActive { get; set; } = true;
+}

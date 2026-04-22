@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SchoolManagement.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using SchoolManagement.Infrastructure.Persistence;
 namespace SchoolManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422110232_AddTimetableEntries")]
+    partial class AddTimetableEntries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -433,8 +436,8 @@ namespace SchoolManagement.Infrastructure.Persistence.Migrations
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("int");
 
-                    b.Property<TimeOnly>("EndTime")
-                        .HasColumnType("time");
+                    b.Property<int>("HourNumber")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -446,9 +449,6 @@ namespace SchoolManagement.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<TimeOnly>("StartTime")
-                        .HasColumnType("time");
-
                     b.Property<int>("SubjectId")
                         .HasColumnType("int");
 
@@ -459,10 +459,10 @@ namespace SchoolManagement.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SubjectId");
 
-                    b.HasIndex("TeacherId", "DayOfWeek", "StartTime", "EndTime")
+                    b.HasIndex("TeacherId", "DayOfWeek", "HourNumber")
                         .IsUnique();
 
-                    b.HasIndex("Class", "Section", "DayOfWeek", "StartTime", "EndTime")
+                    b.HasIndex("Class", "Section", "DayOfWeek", "HourNumber")
                         .IsUnique();
 
                     b.ToTable("TimetableEntries", (string)null);

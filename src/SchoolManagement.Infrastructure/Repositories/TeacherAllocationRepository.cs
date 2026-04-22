@@ -71,6 +71,17 @@ public class TeacherAllocationRepository : ITeacherAllocationRepository
                 cancellationToken);
     }
 
+    public Task<bool> ExistsActiveAsync(int teacherId, int subjectId, string className, string section, CancellationToken cancellationToken = default)
+    {
+        return _db.TeacherClassSubjectAllocations.AsNoTracking().AnyAsync(
+            x => x.TeacherId == teacherId
+                 && x.SubjectId == subjectId
+                 && x.IsActive
+                 && x.Class.ToLower() == className.ToLower()
+                 && x.Section.ToLower() == section.ToLower(),
+            cancellationToken);
+    }
+
     public Task<bool> ExistsDuplicateAsync(int teacherId, int subjectId, string className, string section, int? exceptId, CancellationToken cancellationToken = default)
     {
         var query = _db.TeacherClassSubjectAllocations.AsNoTracking()
