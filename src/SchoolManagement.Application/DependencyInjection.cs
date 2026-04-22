@@ -2,9 +2,11 @@ using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using SchoolManagement.Application.Attendance;
+using SchoolManagement.Application.Accountants;
 using SchoolManagement.Application.Auth;
 using SchoolManagement.Application.Courses;
 using SchoolManagement.Application.Dashboard;
+using SchoolManagement.Application.Fees;
 using SchoolManagement.Application.PeriodAttendance;
 using SchoolManagement.Application.Students;
 using SchoolManagement.Application.Teachers;
@@ -22,9 +24,11 @@ public static class DependencyInjection
         services.AddScoped<IStudentService, StudentService>();
         services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IAttendanceService, AttendanceService>();
+        services.AddScoped<IAccountantService, AccountantService>();
         services.AddScoped<IPeriodAttendanceService, PeriodAttendanceService>();
         services.AddScoped<ITeacherService, TeacherService>();
         services.AddScoped<ITimetableService, TimetableService>();
+        services.AddScoped<IFeeService, FeeService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IDashboardService, DashboardService>();
 

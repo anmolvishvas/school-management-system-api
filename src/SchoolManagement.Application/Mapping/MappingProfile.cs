@@ -1,6 +1,8 @@
 using AutoMapper;
 using SchoolManagement.Application.Attendance.Dtos;
+using SchoolManagement.Application.Accountants.Dtos;
 using SchoolManagement.Application.Courses.Dtos;
+using SchoolManagement.Application.Fees.Dtos;
 using SchoolManagement.Application.PeriodAttendance.Dtos;
 using SchoolManagement.Application.Students.Dtos;
 using SchoolManagement.Application.Teachers.Dtos;
@@ -30,6 +32,8 @@ public class MappingProfile : Profile
         CreateMap<TeacherClassSubjectAllocation, TeacherAllocationDto>()
             .ForMember(d => d.TeacherName, o => o.MapFrom(s => s.Teacher != null ? s.Teacher.FullName : string.Empty))
             .ForMember(d => d.SubjectName, o => o.MapFrom(s => s.Subject != null ? s.Subject.Name : string.Empty));
+        CreateMap<Accountant, AccountantDto>()
+            .ForMember(d => d.Username, o => o.MapFrom(s => s.User != null ? s.User.Username : string.Empty));
 
         CreateMap<Course, CourseDto>();
         CreateMap<CourseSection, CourseSectionDto>();
@@ -39,5 +43,10 @@ public class MappingProfile : Profile
         CreateMap<TimetableEntry, TimetableEntryDto>()
             .ForMember(d => d.SubjectName, o => o.MapFrom(s => s.Subject != null ? s.Subject.Name : string.Empty))
             .ForMember(d => d.TeacherName, o => o.MapFrom(s => s.Teacher != null ? s.Teacher.FullName : string.Empty));
+
+        CreateMap<FeeInvoice, FeeInvoiceDto>()
+            .ForMember(d => d.StudentName, o => o.MapFrom(s => s.Student != null ? s.Student.Name : string.Empty))
+            .ForMember(d => d.AmountDue, o => o.MapFrom(s => (s.Amount - s.Discount) - s.AmountPaid));
+        CreateMap<FeePayment, FeePaymentDto>();
     }
 }

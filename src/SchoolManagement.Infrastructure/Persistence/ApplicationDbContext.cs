@@ -21,6 +21,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<CourseSection> CourseSections => Set<CourseSection>();
     public DbSet<CourseSubject> CourseSubjects => Set<CourseSubject>();
     public DbSet<TimetableEntry> TimetableEntries => Set<TimetableEntry>();
+    public DbSet<Accountant> Accountants => Set<Accountant>();
+    public DbSet<FeeInvoice> FeeInvoices => Set<FeeInvoice>();
+    public DbSet<FeePayment> FeePayments => Set<FeePayment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -158,6 +161,40 @@ public class ApplicationDbContext : DbContext
 
             entity.HasOne(x => x.Subject).WithMany().HasForeignKey(x => x.SubjectId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(x => x.Teacher).WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Accountant>(entity =>
+        {
+            entity.ToTable("Accountants");
+            entity.Property(x => x.FullName).HasMaxLength(200).IsRequired();
+            entity.Property(x => x.Phone).HasMaxLength(30);
+            entity.Property(x => x.Email).HasMaxLength(256);
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+            entity.HasIndex(x => x.UserId).IsUnique();
+            entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<FeeInvoice>(entity =>
+        {
+            entity.ToTable("FeeInvoices");
+            entity.Property(x => x.Title).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.Discount).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.AmountPaid).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.Notes).HasMaxLength(500);
+            entity.HasIndex(x => new { x.StudentId, x.DueDate });
+            entity.HasOne(x => x.Student).WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<FeePayment>(entity =>
+        {
+            entity.ToTable("FeePayments");
+            entity.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.Mode).HasMaxLength(50);
+            entity.Property(x => x.ReferenceNo).HasMaxLength(100);
+            entity.HasIndex(x => new { x.FeeInvoiceId, x.PaidOn });
+            entity.HasOne(x => x.FeeInvoice).WithMany().HasForeignKey(x => x.FeeInvoiceId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.ReceivedBy).WithMany().HasForeignKey(x => x.ReceivedByUserId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

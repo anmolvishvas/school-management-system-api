@@ -14,12 +14,14 @@ public class AuthService : IAuthService
 {
     private readonly IUserRepository _users;
     private readonly ITeacherRepository _teachers;
+    private readonly IAccountantRepository _accountants;
     private readonly IConfiguration _configuration;
 
-    public AuthService(IUserRepository users, ITeacherRepository teachers, IConfiguration configuration)
+    public AuthService(IUserRepository users, ITeacherRepository teachers, IAccountantRepository accountants, IConfiguration configuration)
     {
         _users = users;
         _teachers = teachers;
+        _accountants = accountants;
         _configuration = configuration;
     }
 
@@ -51,6 +53,22 @@ public class AuthService : IAuthService
             {
                 await _teachers.AddAsync(
                     new Teacher
+                    {
+                        UserId = user.Id,
+                        FullName = user.Username,
+                        Email = user.Username.Contains('@') ? user.Username : null,
+                        IsActive = true
+                    },
+                    cancellationToken);
+            }
+        }
+        else if (string.Equals(normalizedRole, ApplicationRoles.Accountant, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingAccountant = await _accountants.GetByUserIdAsync(user.Id, cancellationToken);
+            if (existingAccountant == null)
+            {
+                await _accountants.AddAsync(
+                    new Accountant
                     {
                         UserId = user.Id,
                         FullName = user.Username,

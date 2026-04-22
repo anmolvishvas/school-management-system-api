@@ -163,6 +163,31 @@ Behavior:
 - Existing slot in same class-section is updated, missing slot is inserted
 - Validates duplicate slots within payload before writing
 
+## Accountants (`/api/Accountants`)
+
+- `GET /api/Accountants?activeOnly=true` (Admin, Accountant)
+- `GET /api/Accountants/{id}` (Admin, Accountant)
+- `POST /api/Accountants` (Admin)
+- `PUT /api/Accountants/{id}` (Admin)
+- `DELETE /api/Accountants/{id}` (Admin)
+
+## Fees and reports (`/api/Fees`)
+
+- `GET /api/Fees/invoices?page=1&pageSize=30&studentId=&status=&className=&section=&dueFrom=&dueTo=` (Admin, Accountant)
+- `GET /api/Fees/invoices/{id}` (Admin, Accountant)
+- `POST /api/Fees/invoices` (Admin, Accountant)
+- `PUT /api/Fees/invoices/{id}` (Admin, Accountant)
+- `DELETE /api/Fees/invoices/{id}` (Admin, Accountant)
+- `GET /api/Fees/invoices/{invoiceId}/payments` (Admin, Accountant)
+- `POST /api/Fees/invoices/{invoiceId}/payments` (Admin, Accountant)
+- `GET /api/Fees/reports/summary?from=&to=&className=&section=` (Admin, Accountant)
+
+Invoice payment flow:
+- Create invoice with `amount`, `discount`, `dueDate`
+- Add one or many payments against invoice
+- Status auto-updates: `Pending`, `Partial`, `Paid`, `Overdue`
+- Summary report returns billed/collected/due and status counts
+
 Teaching plan response is a tree:
 - Teacher profile
 - Class/section groups
